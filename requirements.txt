@@ -1,0 +1,8 @@
+requirements for backend
+fastapi
+uvicorn
+numpy
+python-multipart
+pymupdf
+faiss-cpu
+sentence-transformers
