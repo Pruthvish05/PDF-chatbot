@@ -10,9 +10,16 @@ def save_index(embeddings, chunks):
     if len(embeddings) == 0:
         print("No embeddings to save.")
         return
-    dim=len(embeddings[0])
+    embeddings = np.asarray(embeddings, dtype='float32')
+    if embeddings.ndim == 1:
+        embeddings = embeddings.reshape(1, -1)
+    dim = embeddings.shape[1]
     index = faiss.IndexFlatL2(dim)
-    index.add(np.array(embeddings).astype("float32"))
+    print(type(embeddings))
+    print("SHAPE:", embeddings.shape)
+    print(embeddings)
+
+    index.add(embeddings)
     os.makedirs(os.path.dirname(INDEX_PATH), exist_ok=True)
     faiss.write_index(index, INDEX_PATH)
     os.makedirs(os.path.dirname(CHUNK_PATH), exist_ok=True)
@@ -25,6 +32,11 @@ def load_index():
         chunks = pickle.load(f)
     return index, chunks
 
-def search_similar_chunks(query_embedding, index, chunks, top_k=5):
-    D, I = index.search(np.array([query_embedding]), top_k)
-    return [(chunks[i], D[0][idx]) for idx, i in enumerate(I[0])]
+def search_similar_chunks(query_embedding, index, chunks, top_k=3):
+    query_embedding = query_embedding.astype('float32')
+    d,i = index.search(query_embedding,top_k)
+    results = []
+    for idx in i[0]:
+        if idx < len(chunks):
+            results.append(chunks[idx])
+    return results

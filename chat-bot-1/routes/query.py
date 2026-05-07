@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from models.schemas import QueryRequest
-from services.embedding import get_embedding
+from services.embedding import get_embedding, get_query_embedding
 from services.vectorstore import load_index, search_similar_chunks
 
 
@@ -16,6 +16,6 @@ async def ask_question(request: QueryRequest):
     answer = ask_llm(request.question, context)
     return{
         "question": request.question,
-        "answer": answer,
-        "relevant_chunks": relevant_chunks
+        "answer": str(answer),
+        "relevant_chunks": [str(c) for c in relevant_chunks]
     }
