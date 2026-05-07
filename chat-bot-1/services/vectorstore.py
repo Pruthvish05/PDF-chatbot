@@ -21,4 +21,7 @@ def load_index():
     with open(CHUNK_PATH, 'rb') as f:
         chunks = pickle.load(f)
     return index, chunks
-        
+
+def search_similar_chunks(query_embedding, index, chunks, top_k=5):
+    D, I = index.search(np.array([query_embedding]), top_k)
+    return [(chunks[i], D[0][idx]) for idx, i in enumerate(I[0])]
