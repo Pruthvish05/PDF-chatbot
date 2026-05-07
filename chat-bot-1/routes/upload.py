@@ -2,6 +2,9 @@ from fastapi import APIRouter, File, UploadFile
 import fitz
 import os
 from services.pdf import extract_text_from_pdf
+from services.embedding import get_embedding
+from services.vectorstore import save_index
+from services.chunk import chunk_text
 router = APIRouter()
 
 UPLOAD_DIR = "data/uploads"
@@ -9,14 +12,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    if file.content_type != "application/pdf":
-        return {"error": "Only PDF files are allowed."}
-
-    file_path= os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(UPLOAD_DIR, file.filename or "uploaded_file.pdf")
     with open(file_path, "wb") as f:
         f.write(await file.read())
     text = extract_text_from_pdf(file_path)
-    
-    return{"message": f"File '{file.filename}' uploaded successfully.",
-        "file_path": file_path,
-        "text": text[:200]}
+    chunks = chunk_text(text)
+    embeddings = [get_embedding(chunk) for chunk in chunks]
+    save_index(embeddings, chunks)
+    return {"filename": file.filename, "message": "File uploaded and processed successfully."
+        "chunks": len(chunks), "embedding_dim": len(embeddings[0])}
+
