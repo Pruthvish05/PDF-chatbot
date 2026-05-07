@@ -7,9 +7,12 @@ INDEX_PATH="data/index/faiss.index"
 CHUNK_PATH="data/index/chunks.pkl"
 
 def save_index(embeddings, chunks):
+    if len(embeddings) == 0:
+        print("No embeddings to save.")
+        return
     dim=len(embeddings[0])
     index = faiss.IndexFlatL2(dim)
-    index.add(x=np.array(embeddings))
+    index.add(np.array(embeddings).astype("float32"))
     os.makedirs(os.path.dirname(INDEX_PATH), exist_ok=True)
     faiss.write_index(index, INDEX_PATH)
     os.makedirs(os.path.dirname(CHUNK_PATH), exist_ok=True)

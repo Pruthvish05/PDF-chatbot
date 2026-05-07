@@ -19,6 +19,6 @@ async def upload_file(file: UploadFile = File(...)):
     chunks = chunk_text(text)
     embeddings = [get_embedding(chunk) for chunk in chunks]
     save_index(embeddings, chunks)
-    return {"filename": file.filename, "message": "File uploaded and processed successfully."
+    return {"filename": file.filename, "message": "File uploaded and processed successfully.",
         "chunks": len(chunks), "embedding_dim": len(embeddings[0])}
 
