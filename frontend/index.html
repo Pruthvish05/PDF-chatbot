@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SigmaDoxs | AI Workspace</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+
+<div class="cursor"></div>
+<div class="cursor-blur"></div>
+<link rel="stylesheet" href="styles.css">
+<!-- LANDING NAV -->
+<header class="navbar" id="mainNav">
+    <div class="logo">Sigma<span>Doxs</span></div>
+    <div class="nav-right">
+        <div class="token-box">⚡ Tokens: <span id="tokenCount">0</span></div>
+        <button id="signinBtn">Login</button>
+        <button id="signoutBtn" style="display: none;">Logout</button>
+    </div>
+</header>
+
+<!-- HERO SECTION (Visible by default) -->
+<section class="hero-section" id="heroView">
+    <div class="hero-left">
+        <h1>Chat With Your PDFs Using AI</h1>
+        <p>Upload documents, generate summaries, and ask questions instantly.</p>
+        <button id="uploadBtn">Upload Document</button>
+        <input id="pdfUpload" type="file" accept="application/pdf" hidden>
+    </div>
+    <div class="hero-right">
+        <div class="glass-card"><h3>AI Semantic Search</h3><p>Contextual understanding.</p></div>
+        <div class="glass-card"><h3>Instant Summaries</h3><p>Automated overviews.</p></div>
+    </div>
+</section>
+
+<!-- DASHBOARD VIEW (Hidden by default) -->
+<div id="dashboardView" style="display: none; display: flex;">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><h2>Sigma<span>Doxs</span></h2></div>
+        <div class="sidebar-links">
+            <a href="#" class="active">🏠 Dashboard</a>
+            <a href="#">🧠 Summaries</a>
+            <a href="#">💬 AI Q&A</a>
+            <div class="history-section">
+                <h3>📁 History</h3>
+                <div id="historyList"></div>
+            </div>
+        </div>
+        <div class="logout-btn" id="dashLogout">Logout</div>
+    </aside>
+
+    <main class="dashboard-main">
+        <div class="welcome-box">
+            <h1>AI Workspace Ready</h1>
+            <p id="documentName">No Document Uploaded</p>
+        </div>
+        
+        <div class="action-grid">
+            <div class="action-card"><h2>AI Summary</h2><button>Open</button></div>
+            <div class="action-card"><h2>AI Q&A</h2><button>Chat Now</button></div>
+        </div>
+
+        <div class="document-panel">
+            <iframe id="pdfPreview" class="pdf-preview"></iframe>
+        </div>
+    </main>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal">
+    <div class="modal-content">
+        <h2>Login</h2>
+        <input id="username" type="text" placeholder="Username">
+        <input id="password" type="password" placeholder="Password">
+        <button id="loginBtn">Continue</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

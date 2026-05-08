@@ -529,53 +529,42 @@ z-index:2;
 /* =========================
    HISTORY SECTION
 ========================= */
-
 .history-section{
 margin-top:50px;
 }
-
 .history-title{
 font-size:2rem;
 margin-bottom:30px;
 }
-
 #historyContainer{
 display:flex;
 flex-direction:column;
 gap:20px;
 }
-
 .history-card{
 padding:24px;
 border-radius:24px;
 background:rgba(255,255,255,.05);
 border:1px solid rgba(255,255,255,.08);
-
 display:flex;
 justify-content:space-between;
 align-items:center;
-
 backdrop-filter:blur(20px);
 }
-
 .history-name{
 font-size:1rem;
 color:white;
 }
-
 .open-history-btn{
 padding:12px 22px;
 border:none;
 border-radius:14px;
-
 background:
 linear-gradient(135deg,#00bfff,#8a2be2);
-
 color:white;
 cursor:pointer;
 font-weight:700;
 }
-
 .empty-history{
 color:rgba(255,255,255,.7);
 }

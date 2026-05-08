@@ -1,12 +1,8 @@
 import fitz  # PyMuPDF
 
-def extract_text_from_pdf(pdf_path: str) -> str:
+def extract_text(file_path: str) -> str:
     text = ""
-    try:
-        doc = fitz.open(pdf_path)
+    with fitz.open(file_path) as doc:
         for page in doc:
             text += page.get_text()
-        doc.close()
-    except Exception as e:
-        print(f"Error extracting text: {e}")
     return text
