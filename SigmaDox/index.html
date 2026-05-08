@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SigmaDoxs</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="cursor"></div>
+<div class="cursor-blur"></div>
+
+<!-- LOADER -->
+
+<div class="loader" id="loader">
+
+<div class="loader-logo">
+
+<div class="loader-ring"></div>
+
+<h1>
+
+Sigma<span>Doxs</span>
+
+</h1>
+
+</div>
+
+<div class="loader-line"></div>
+
+</div>
+
+<!-- BG -->
+
+<div class="gradient-overlay"></div>
+<div class="noise"></div>
+<div class="vignette"></div>
+
+<!-- NAVBAR -->
+
+<nav>
+
+<div class="nav-left">
+
+<div class="logo">
+
+<img src="images/logo.png" alt="logo">
+
+</div>
+
+<h2>
+
+Sigma<span>Doxs</span>
+
+</h2>
+
+</div>
+
+<div class="nav-links">
+
+<a href="dashboard.html">Previous Docs</a>
+<a href="summary.html">Summaries</a>
+<a href="pricing.html">Pricing</a>
+<a href="about.html">About</a>
+</div>
+
+<div class="nav-right">
+
+<div class="auth-buttons">
+
+<button class="signin-btn">
+
+Sign In
+
+</button>
+
+<button class="signup-btn">
+
+Sign Up
+
+</button>
+
+</div>
+
+</div>
+
+</nav>
+<div class="auth-buttons">
+
+<button class="signin-btn">
+Sign In
+</button>
+
+<button class="signup-btn">
+Sign Up
+</button>
+
+<button class="signout-btn" id="signoutBtn">
+Sign Out
+</button>
+
+</div>
+<!-- HERO -->
+
+<section class="hero">
+
+<div class="hero-left">
+
+<div class="tag">
+
+NEXT GEN AI DOCUMENT ENGINE
+
+</div>
+
+<h1>
+
+Transform Documents Into
+
+<span>Intelligence</span>
+
+</h1>
+
+<p>
+
+Upload PDFs, reports and notes into a futuristic AI workspace
+built for contextual understanding, smart summaries and
+real-time interaction.
+
+</p>
+
+<div class="hero-buttons">
+
+<input type="file" id="pdfUpload" hidden accept=".pdf">
+
+<button class="primary-btn" id="uploadBtn">
+
+Upload Document
+
+</button>
+
+<button class="secondary-btn">
+
+Explore Platform
+
+</button>
+
+</div>
+
+<div class="token-display">
+
+⚡ Tokens:
+<span id="tokenCount">0</span>
+
+</div>
+
+<div class="hero-stats">
+
+<div class="stat">
+
+<h3>50K+</h3>
+
+<p>Documents</p>
+
+</div>
+
+<div class="stat">
+
+<h3>98%</h3>
+
+<p>Accuracy</p>
+
+</div>
+
+<div class="stat">
+
+<h3>256-bit</h3>
+
+<p>Security</p>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div class="hero-right">
+
+<div class="hero-glow"></div>
+
+<div class="glass-card card1">
+
+<div class="card-glow"></div>
+
+<h3>
+
+AI Summary
+
+</h3>
+
+<p>
+
+42 key insights detected instantly.
+
+</p>
+
+</div>
+
+<div class="glass-card card2">
+
+<div class="card-glow"></div>
+
+<h3>
+
+Interactive AI
+
+</h3>
+
+<p>
+
+Talk directly with uploaded documents naturally.
+
+</p>
+
+</div>
+
+<div class="glass-card card3">
+
+<div class="card-glow"></div>
+
+<h3>
+
+Deep Analytics
+
+</h3>
+
+<p>
+
+Understand patterns and important concepts.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- STORY -->
+
+<section class="story-section">
+
+<div class="story-panel left-panel">
+
+<h2>
+
+AI That Understands Context
+
+</h2>
+
+<p>
+
+SigmaDoxs extracts meaning, relationships and important
+concepts from complex documents using advanced AI models.
+
+</p>
+
+</div>
+
+<div class="story-panel right-panel">
+
+<h2>
+
+Real-Time Conversations
+
+</h2>
+
+<p>
+
+Interact naturally with PDFs and reports through
+a conversational AI interface.
+
+</p>
+
+</div>
+
+</section>
+
+<!-- METRICS -->
+
+<section class="metrics-section">
+
+<div class="metric-card">
+
+<h2>10K+</h2>
+
+<p>Users Worldwide</p>
+
+</div>
+
+<div class="metric-card">
+
+<h2>50K+</h2>
+
+<p>Files Processed</p>
+
+</div>
+
+<div class="metric-card">
+
+<h2>98%</h2>
+
+<p>AI Accuracy</p>
+
+</div>
+
+<div class="metric-card">
+
+<h2>256-bit</h2>
+
+<p>End-to-End Security</p>
+
+</div>
+
+</section>
+
+<!-- SHOWCASE -->
+
+<section class="showcase">
+
+<div class="showcase-large">
+
+<h2>
+
+Built For The Future Of AI Workspaces
+
+</h2>
+
+<p>
+
+A cinematic AI experience designed to feel less like
+software and more like an intelligent operating system.
+
+</p>
+
+</div>
+
+<!-- SMART SUMMARY -->
+
+<div class="showcase-small">
+
+<div class="small-glow"></div>
+
+<div class="small-card-content">
+
+<div class="small-icon">
+
+🧠
+
+</div>
+
+<h2>
+
+Smart Summaries
+
+</h2>
+
+<p>
+
+AI-generated contextual summaries from uploaded PDFs
+with semantic understanding and intelligent extraction.
+
+</p>
+
+</div>
+
+</div>
+
+<!-- AI SEARCH -->
+
+<div class="showcase-small">
+
+<div class="small-glow"></div>
+
+<div class="small-card-content">
+
+<div class="small-icon">
+
+🔎
+
+</div>
+
+<h2>
+
+AI Search
+
+</h2>
+
+<p>
+
+Search concepts, keywords and semantic relationships
+inside uploaded documents instantly.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- FOOTER -->
+<footer>
+
+<a href="tos.html">
+TOS
+</a>
+
+<a href="privacy.html">
+Privacy Policy
+</a>
+
+</footer>
+
+<!-- LOGIN MODAL -->
+
+<div class="login-modal" id="loginModal">
+
+<div class="login-box">
+
+<h2>
+
+Welcome to SigmaDoxs
+
+</h2>
+
+<input
+type="text"
+id="username"
+placeholder="Username"
+>
+
+<input
+type="password"
+id="password"
+placeholder="Password"
+>
+
+<button id="loginBtn">
+
+Continue
+
+</button>
+
+</div>
+
+</div>
+
+<!-- SCRIPTS -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
