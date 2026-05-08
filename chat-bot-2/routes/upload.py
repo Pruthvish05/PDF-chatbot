@@ -1,36 +1,27 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, UploadFile, File
+from services.pdf import extract_text
+from services.chunk import split_text
+from services.vectorstore import save_to_vector_store
 import os
-import shutil
-from services.pdf import extract_text_from_pdf
-from services.chunk import chunk_text
-from services.embedding import get_embeddings
-from services.vectorstore import save_index
 
 router = APIRouter()
 
-UPLOAD_DIR = "data/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 @router.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+async def handle_upload(file: UploadFile = File(...)):
+    # 1. Save File
+    file_path = f"data/uploads/{file.filename}"
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
     
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # 2. Extract & Chunk
+    text = extract_text(file_path)
+    chunks = split_text(text)
     
-    # 1. Extract
-    text = extract_text_from_pdf(file_path)
-    
-    # 2. Chunk
-    chunks = chunk_text(text)
-    
-    # 3. Embed
-    embeddings = get_embeddings(chunks)
-    
-    # 4. Store
-    save_index(embeddings, chunks)
+    # 3. Vectorize & Index
+    collection_id = save_to_vector_store(chunks, file.filename)
     
     return {
-        "message": "PDF processed successfully",
-        "chunks": len(chunks)
+        "status": "success", 
+        "filename": file.filename, 
+        "collection": collection_id
     }

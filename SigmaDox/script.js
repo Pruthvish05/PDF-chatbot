@@ -1,315 +1,71 @@
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/* SAFE ELEMENTS */
-
-const loginModal =
-document.getElementById("loginModal");
-
-const signinBtn =
-document.querySelector(".signin-btn");
-
-const signupBtn =
-document.querySelector(".signup-btn");
-
-const loginBtn =
-document.getElementById("loginBtn");
-
-/* OPEN LOGIN MODAL */
-
-if(signinBtn && loginModal){
-
-signinBtn.addEventListener("click",()=>{
-
-loginModal.style.display = "flex";
-
-});
-
-}
-
-if(signupBtn && loginModal){
-
-signupBtn.addEventListener("click",()=>{
-
-loginModal.style.display = "flex";
-
-});
-
-}
-
-/* CLOSE MODAL */
-
-if(loginModal){
-
-loginModal.addEventListener("click",(e)=>{
-
-if(e.target === loginModal){
-
-loginModal.style.display = "none";
-
-}
-
-});
-
-}
-
-/* LOGIN LOGIC */
-
-if(loginBtn){
-
-loginBtn.addEventListener("click",()=>{
-
-const username =
-document.getElementById("username").value.trim();
-
-const password =
-document.getElementById("password").value.trim();
-
-if(!username || !password){
-
-alert("Enter username and password");
-return;
-
-}
-
-/* SAVE USER */
-
-localStorage.setItem(
-"currentUser",
-username
-);
-
-/* DEFAULT TOKENS */
-
-if(
-!localStorage.getItem(`tokens_${username}`)
-){
-
-localStorage.setItem(
-`tokens_${username}`,
-8
-);
-
-}
-
-/* UPDATE TOKEN DISPLAY */
-
-const tokenCount =
-document.getElementById("tokenCount");
-
-if(tokenCount){
-
-tokenCount.innerText =
-localStorage.getItem(`tokens_${username}`) || 8;
-
-}
-
-/* CLOSE MODAL */
-
-loginModal.style.display = "none";
-
-alert("Login successful");
-
-});
-
-}
-
-/* TOKENS */
-
-const tokenCount =
-document.getElementById("tokenCount");
-
-const currentUser =
-localStorage.getItem("currentUser");
-
-if(currentUser && tokenCount){
-
-tokenCount.innerText =
-localStorage.getItem(`tokens_${currentUser}`) || 8;
-
-}
-
-/* PDF UPLOAD */
-
-const uploadBtn =
-document.getElementById("uploadBtn");
-
-const pdfUpload =
-document.getElementById("pdfUpload");
-
-if(uploadBtn && pdfUpload){
-
-uploadBtn.addEventListener("click",()=>{
-
-const activeUser =
-localStorage.getItem("currentUser");
-
-if(!activeUser){
-
-alert("Please login first");
-return;
-
-}
-
-pdfUpload.click();
-
-});
-
-pdfUpload.addEventListener("change",async(e)=>{
-
-const file =
-e.target.files[0];
-
-if(!file) return;
-
-/* CHECK PDF */
-
-if(file.type !== "application/pdf"){
-
-alert("Please upload a valid PDF");
-return;
-
-}
-
-/* BUTTON STATE */
-
-uploadBtn.innerText =
-"Processing PDF...";
-
-/* SAVE FILE NAME */
-
-localStorage.setItem(
-"uploadedFileName",
-file.name
-);
-
-/* FILE READER */
-
-const reader =
-new FileReader();
-
-reader.onload = async function(){
-
-try{
-
-const typedArray =
-new Uint8Array(reader.result);
-
-/* LOAD PDF */
-
-const pdf =
-await pdfjsLib.getDocument({
-data:typedArray
-}).promise;
-
-let fullText = "";
-
-/* EXTRACT TEXT */
-
-for(let i=1;i<=pdf.numPages;i++){
-
-const page =
-await pdf.getPage(i);
-
-const content =
-await page.getTextContent();
-
-const strings =
-content.items.map(
-item => item.str
-);
-
-fullText +=
-strings.join(" ") + " ";
-
-}
-
-/* CHECK TEXT */
-
-if(!fullText.trim()){
-
-alert("Could not read PDF");
-uploadBtn.innerText =
-"Upload Document";
-
-return;
-
-}
-
-/* SAVE PDF TEXT */
-
-localStorage.setItem(
-"pdfText",
-fullText
-);
-
-/* DOCUMENT HISTORY */
-
-let history = [];
-
-try{
-
-history =
-JSON.parse(
-localStorage.getItem("documentHistory")
-) || [];
-
-}catch(err){
-
-history = [];
-
-}
-
-if(!history.includes(file.name)){
-
-history.unshift(file.name);
-
-if(history.length > 10){
-
-history.pop();
-
-}
-
-localStorage.setItem(
-"documentHistory",
-JSON.stringify(history)
-);
-
-}
-
-/* SUCCESS */
-
-uploadBtn.innerText =
-"Upload Complete ✓";
-
-/* REDIRECT */
-
-setTimeout(()=>{
-
-window.location.href =
-"dashboard.html";
-
-},1200);
-
-}catch(error){
-
-console.error(error);
-
-alert("PDF processing failed");
-
-uploadBtn.innerText =
-"Upload Document";
-
-}
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ELEMENTS */
+const loginModal = document.getElementById("loginModal");
+const signinBtn = document.querySelector(".signin-btn");
+const loginBtn = document.getElementById("loginBtn");
+const uploadBtn = document.getElementById("uploadBtn");
+const pdfUpload = document.getElementById("pdfUpload");
+const tokenCount = document.getElementById("tokenCount");
+
+/* AUTH LOGIC */
+const updateTokenDisplay = () => {
+    const user = localStorage.getItem("currentUser");
+    if (user && tokenCount) {
+        tokenCount.innerText = localStorage.getItem(`tokens_${user}`) || 8;
+    }
 };
 
-reader.readAsArrayBuffer(file);
-
-});
-
+if (signinBtn) {
+    signinBtn.addEventListener("click", () => loginModal.style.display = "flex");
 }
 
+if (loginBtn) {
+    loginBtn.addEventListener("click", () => {
+        const username = document.getElementById("username").value.trim();
+        if (!username) return alert("Enter username");
+        
+        localStorage.setItem("currentUser", username);
+        if (!localStorage.getItem(`tokens_${username}`)) {
+            localStorage.setItem(`tokens_${username}`, 8);
+        }
+        updateTokenDisplay();
+        loginModal.style.display = "none";
+    });
+}
+
+/* THE HANDOFF: PDF UPLOAD */
+if (uploadBtn && pdfUpload) {
+    uploadBtn.addEventListener("click", () => {
+        if (!localStorage.getItem("currentUser")) return alert("Please login first");
+        pdfUpload.click();
+    });
+
+    pdfUpload.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file || file.type !== "application/pdf") return alert("Upload a valid PDF");
+
+        // 1. Deduct Tokens
+        const user = localStorage.getItem("currentUser");
+        let tokens = parseInt(localStorage.getItem(`tokens_${user}`) || 8);
+        localStorage.setItem(`tokens_${user}`, Math.max(0, tokens - 5));
+
+        // 2. Save Metadata
+        localStorage.setItem("uploadedFileName", file.name);
+
+        // 3. Convert to Base64 to pass to the next page
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            localStorage.setItem("temp_pdf_data", ev.target.result);
+            window.location.href = "processing.html";
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+/* CURSOR & GSAP (Keep your existing cursor/GSAP code here) */
+updateTokenDisplay();
 /* CURSOR */
 
 const cursor =

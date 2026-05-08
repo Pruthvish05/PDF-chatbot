@@ -1,30 +1,37 @@
 import requests
+import os
+from dotenv import load_dotenv
 
-API_KEY = "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"
-URL = "https://openrouter.ai/api/v1/chat/completions"
+load_dotenv()
 
-# 
-def ask_llm(question: str, context: list) -> str:
-    context_text = "\n---\n".join(context)
-    
-    prompt = f"Context: {context_text}\n\nQuestion: {question}\nAnswer:"
+def ask_llm(question: str, context: str):
+    api_key ="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"
+    if not api_key:
+        return "Error: OPENROUTER_API_KEY not found in .env file."
 
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json",
-    }
-    
-    data = {
-        "model": "google/gemma-2-9b-it:free",
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    
-    response = requests.post(URL, headers=headers, json=data)
-    
-    if response.status_code != 200:
-        # This will tell you exactly what OpenRouter doesn't like
-        print(f"Full Error Response: {response.text}")
-        return f"Error {response.status_code}: {response.text}"
+    system_prompt = f"Answer based ONLY on this context: {context}"
+
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "model": "google/gemini-2.0-flash-001",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ]
+            }
+        )
+        res_json = response.json()
         
-    result = response.json()
-    return result['choices'][0]['message']['content'].strip()
+        # Check if 'choices' exists in the response
+        if 'choices' in res_json:
+            return res_json['choices'][0]['message']['content']
+        else:
+            print(f"OpenRouter Error: {res_json}")
+            return "AI Error: Model failed to respond."
+            
+    except Exception as e:
+        print(f"LLM Service Error: {e}")
+        return "Internal Error: Could not connect to LLM."

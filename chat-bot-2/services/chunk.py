@@ -1,13 +1,8 @@
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> list:
-    if not text:
-        return []
-    
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = start + chunk_size
-        chunk = text[start:end]
-        chunks.append(chunk)
-        start += (chunk_size - overlap)
-    
-    return chunks
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+def split_text(text: str):
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=100
+    )
+    return splitter.split_text(text)

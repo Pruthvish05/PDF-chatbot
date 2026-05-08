@@ -1,29 +1,23 @@
 from fastapi import APIRouter, HTTPException
-from models.schemas import QueryRequest
-from services.embedding import get_query_embedding
-from services.vectorstore import load_index, search_similar_chunks
+from pydantic import BaseModel
+from services.vectorstore import query_vector_store
 from services.llm import ask_llm
 
 router = APIRouter()
 
-@router.post("/ask")
-async def ask_question(request: QueryRequest):
-    # 1. Load Index
-    index, chunks = load_index()
-    if index is None:
-        raise HTTPException(status_code=400, detail="No PDF uploaded or indexed yet.")
-    
-    # 2. Embed Query
-    query_vec = get_query_embedding(request.question)
-    
-    # 3. Retrieve
-    relevant_chunks = search_similar_chunks(query_vec, index, chunks)
-    
-    # 4. LLM Generation
-    answer = ask_llm(request.question, relevant_chunks)
-    
-    return {
-        "question": request.question,
-        "answer": answer,
-        "context_used": relevant_chunks
-    }
+class ChatRequest(BaseModel):
+    question: str
+    filename: str
+
+@router.post("/chat")
+async def chat_with_pdf(request: ChatRequest):
+    try:
+        # 1. Search for the top 3 most relevant chunks in the PDF
+        context = query_vector_store(request.filename, request.question)
+        
+        # 2. Feed that context + the user's question to Gemini 2.0
+        answer = ask_llm(request.question, context)
+        
+        return {"response": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

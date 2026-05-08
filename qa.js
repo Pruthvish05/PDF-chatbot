@@ -1,323 +1,121 @@
-/* TOKENS */
+/* ELEMENTS */
+const chatContainer = document.getElementById("chatContainer");
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
 
-const qaTokens =
-document.getElementById("qaTokens");
+/**
+ * APPEND MESSAGE TO UI
+ * @param {string} role - 'user' or 'bot'
+ * @param {string} text - The message content
+ */
+function appendMessage(role, text) {
+    const messageWrapper = document.createElement("div");
+    messageWrapper.className = `message-wrapper ${role}-wrapper`;
 
-const currentUser =
-localStorage.getItem("currentUser");
+    const messageBox = document.createElement("div");
+    messageBox.className = `message-box ${role}-box`;
+    
+    // Use innerText for security, or innerHTML if you want to support markdown later
+    messageBox.innerText = text;
 
-if(currentUser && qaTokens){
+    messageWrapper.appendChild(messageBox);
+    chatContainer.appendChild(messageWrapper);
 
-qaTokens.innerText =
-localStorage.getItem(`tokens_${currentUser}`) || 8;
+    // Smooth scroll to bottom
+    chatContainer.scrollTo({
+        top: chatContainer.scrollHeight,
+        behavior: 'smooth'
+    });
 
+    return messageBox; // Return reference to update "thinking" state later
 }
 
-/* DOCUMENT NAME */
+/**
+ * SEND MESSAGE TO BACKEND
+ */
+async function handleSendMessage() {
+    const question = chatInput.value.trim();
+    const filename = localStorage.getItem("uploadedFileName");
 
-const chatDocName =
-document.getElementById("chatDocName");
+    if (!question) return;
+    if (!filename) {
+        alert("No active document found. Please upload a PDF first.");
+        return;
+    }
 
-const uploadedFileName =
-localStorage.getItem("uploadedFileName");
+    // 1. Clear input and show user message
+    chatInput.value = "";
+    appendMessage("user", question);
 
-if(chatDocName){
+    // 2. Show "Thinking" placeholder for the bot
+    const botMessageElement = appendMessage("bot", "SigmaDoxs is thinking...");
+    botMessageElement.classList.add("typing-effect");
 
-chatDocName.innerText =
-uploadedFileName || "No Document Uploaded";
+    try {
+        const response = await fetch("http://localhost:8000/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                question: question,
+                filename: filename
+            })
+        });
 
+        if (!response.ok) throw new Error("Server error");
+
+        const data = await response.json();
+
+        // 3. Update the bot message with real response
+        botMessageElement.classList.remove("typing-effect");
+        botMessageElement.innerText = data.response;
+
+        // 4. Deduct a token for the chat (optional business logic)
+        deductChatToken();
+
+    } catch (error) {
+        console.error("Chat Error:", error);
+        botMessageElement.innerText = "Connection lost. Please ensure the Python backend is running.";
+        botMessageElement.style.color = "#ff4d4d";
+    }
 }
 
-/* PDF TEXT */
+/**
+ * TOKEN DEDUCTION (Internal)
+ */
+function deductChatToken() {
+    const user = localStorage.getItem("currentUser");
+    if (user) {
+        let tokens = parseInt(localStorage.getItem(`tokens_${user}`) || 0);
+        if (tokens > 0) {
+            localStorage.setItem(`tokens_${user}`, tokens - 1);
+            // Dispatch event so dashboard.js updates the UI
+            window.dispatchEvent(new Event('storage'));
+        }
+    }
+}
 
-const pdfText =
-localStorage.getItem("pdfText") || "";
+/* EVENT LISTENERS */
 
-/* GSAP */
+// Click Send
+if (sendBtn) {
+    sendBtn.addEventListener("click", handleSendMessage);
+}
 
-if(typeof gsap !== "undefined"){
+// Press Enter
+if (chatInput) {
+    chatInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            handleSendMessage();
+        }
+    });
+}
 
-gsap.from(".qa-sidebar",{
-x:-100,
-opacity:0,
-duration:1.2,
-ease:"power4.out"
+// Initial Greeting
+document.addEventListener("DOMContentLoaded", () => {
+    const fileName = localStorage.getItem("uploadedFileName");
+    if (fileName) {
+        appendMessage("bot", `I've analyzed "${fileName}". What would you like to know?`);
+    }
 });
-
-gsap.from(".chat-header",{
-y:80,
-opacity:0,
-duration:1.2,
-delay:.2,
-ease:"power4.out"
-});
-
-gsap.from(".message",{
-y:40,
-opacity:0,
-stagger:.15,
-duration:1,
-delay:.4,
-ease:"power4.out"
-});
-
-}
-
-/* CHAT ELEMENTS */
-
-const sendBtn =
-document.getElementById("sendBtn");
-
-const chatInput =
-document.getElementById("chatInput");
-
-const chatContainer =
-document.getElementById("chatContainer");
-
-/* SEND EVENTS */
-
-if(sendBtn){
-
-sendBtn.addEventListener(
-"click",
-sendMessage
-);
-
-}
-
-if(chatInput){
-
-chatInput.addEventListener(
-"keypress",
-(e)=>{
-
-if(e.key === "Enter"){
-
-sendMessage();
-
-}
-
-}
-);
-
-}
-
-/* SEND MESSAGE */
-
-function sendMessage(){
-
-if(!chatInput || !chatContainer) return;
-
-const text =
-chatInput.value.trim();
-
-if(text === "") return;
-
-/* DISABLE BUTTON */
-
-sendBtn.disabled = true;
-
-/* USER MESSAGE */
-
-const userMessage =
-document.createElement("div");
-
-userMessage.className =
-"message user-message";
-
-const userContent =
-document.createElement("div");
-
-userContent.className =
-"message-content";
-
-userContent.innerText = text;
-
-userMessage.appendChild(userContent);
-
-chatContainer.appendChild(userMessage);
-
-chatInput.value = "";
-
-scrollChat();
-
-/* TYPING */
-
-const typing =
-document.createElement("div");
-
-typing.className =
-"message ai-message";
-
-typing.innerHTML = `
-<div class="message-avatar">
-🤖
-</div>
-
-<div class="message-content typing-msg">
-
-Analyzing document...
-
-</div>
-`;
-
-chatContainer.appendChild(typing);
-
-scrollChat();
-
-/* AI RESPONSE */
-
-setTimeout(()=>{
-
-typing.remove();
-
-const response =
-generatePDFAnswer(text);
-
-const aiMessage =
-document.createElement("div");
-
-aiMessage.className =
-"message ai-message";
-
-aiMessage.innerHTML = `
-<div class="message-avatar">
-🤖
-</div>
-
-<div class="message-content ai-generated">
-</div>
-`;
-
-chatContainer.appendChild(aiMessage);
-
-const target =
-aiMessage.querySelector(".ai-generated");
-
-typeEffect(target,response);
-
-sendBtn.disabled = false;
-
-scrollChat();
-
-},1000);
-
-}
-
-/* TYPE EFFECT */
-
-function typeEffect(element,text){
-
-if(!element) return;
-
-let index = 0;
-
-const safeText =
-text.substring(0,2000);
-
-const interval =
-setInterval(()=>{
-
-element.innerText +=
-safeText.charAt(index);
-
-index++;
-
-scrollChat();
-
-if(index >= safeText.length){
-
-clearInterval(interval);
-
-}
-
-},12);
-
-}
-
-/* SCROLL */
-
-function scrollChat(){
-
-if(chatContainer){
-
-chatContainer.scrollTop =
-chatContainer.scrollHeight;
-
-}
-
-}
-
-/* AI SEARCH */
-
-function generatePDFAnswer(question){
-
-if(!pdfText){
-
-return `
-No PDF content found.
-
-Please upload a document first from the homepage.
-`;
-
-}
-
-const cleanQuestion =
-question.toLowerCase();
-
-const questionWords =
-cleanQuestion
-.split(/\s+/)
-.filter(word=>word.length > 2);
-
-const sentences =
-pdfText.match(/[^.!?]+[.!?]+/g) || [];
-
-let bestSentence = "";
-let bestScore = 0;
-
-sentences.forEach((sentence)=>{
-
-const lower =
-sentence.toLowerCase();
-
-let score = 0;
-
-questionWords.forEach((word)=>{
-
-if(lower.includes(word)){
-
-score++;
-
-}
-
-});
-
-if(score > bestScore){
-
-bestScore = score;
-bestSentence = sentence;
-
-}
-
-});
-
-/* EXACT RESULT */
-
-if(bestSentence && bestScore > 0){
-
-return bestSentence.trim();
-
-}
-
-/* FALLBACK */
-
-return `
-I could not find an exact answer inside the uploaded PDF.
-
-However, the document mainly discusses:
-
-${pdfText.substring(0,400)}...
-`;
-
-}
