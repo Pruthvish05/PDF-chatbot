@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SigmaDoxs — Processing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050508; --surface: #0d0d14; --glass: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.07); --neon: #7b5ea7; --neon-hot: #c084fc;
+      --neon-cyan: #22d3ee; --text: #e8e8f0; --muted: #6b6b80;
+      --font-head: 'Syne', sans-serif; --font-mono: 'DM Mono', monospace;
+    }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--font-head);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .bg-glow {
+      position: fixed; width: 600px; height: 600px; border-radius: 50%;
+      filter: blur(120px); opacity: 0.1; pointer-events: none;
+    }
+    .glow-1 { background: var(--neon); top: -150px; left: -150px; }
+    .glow-2 { background: var(--neon-cyan); bottom: -150px; right: -150px; }
+
+    .container {
+      text-align: center; max-width: 560px; width: 100%; padding: 40px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Orbiting rings ──────────────────────────────────────── */
+    .orbit-wrap {
+      position: relative; width: 160px; height: 160px; margin: 0 auto 48px;
+    }
+    .orbit {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 1.5px solid transparent; animation: spin linear infinite;
+    }
+    .orbit-1 {
+      border-top-color: var(--neon-hot); border-right-color: rgba(192,132,252,0.2);
+      animation-duration: 2.4s;
+    }
+    .orbit-2 {
+      inset: 16px; border-bottom-color: var(--neon-cyan); border-left-color: rgba(34,211,238,0.2);
+      animation-duration: 1.8s; animation-direction: reverse;
+    }
+    .orbit-3 {
+      inset: 32px; border-top-color: rgba(192,132,252,0.5); border-right-color: rgba(34,211,238,0.3);
+      animation-duration: 3.2s;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .orbit-core {
+      position: absolute; inset: 48px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(123,94,167,0.4), rgba(34,211,238,0.1));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      animation: breathe 2.5s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%,100% { transform: scale(1); opacity: 0.8; }
+      50%      { transform: scale(1.08); opacity: 1; }
+    }
+
+    h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .filename {
+      font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon-hot);
+      margin-bottom: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── Progress bar ────────────────────────────────────────── */
+    .progress-wrap {
+      background: rgba(255,255,255,0.05); border-radius: 100px;
+      height: 6px; overflow: hidden; margin-bottom: 24px;
+    }
+    .progress-bar {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--neon), var(--neon-hot), var(--neon-cyan));
+      background-size: 200% 100%;
+      animation: shimmer 1.5s linear infinite;
+      transition: width 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+      width: 0%;
+    }
+    @keyframes shimmer { to { background-position: -200% center; } }
+
+    .progress-pct {
+      font-size: 2.5rem; font-weight: 800; letter-spacing: -2px;
+      background: linear-gradient(135deg, var(--neon-hot), var(--neon-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    /* ── Stage log ───────────────────────────────────────────── */
+    .stage-list {
+      list-style: none; margin-top: 32px; text-align: left;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .stage {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted);
+      opacity: 0; transition: all 0.4s;
+    }
+    .stage.active { color: var(--text); opacity: 1; }
+    .stage.done   { color: var(--neon-cyan); opacity: 1; }
+    .stage-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 1.5px solid currentColor; flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .stage.active .stage-dot { background: var(--neon-hot); border-color: var(--neon-hot); animation: pulse 1s infinite; }
+    .stage.done .stage-dot   { background: var(--neon-cyan); border-color: var(--neon-cyan); }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+
+    .error-box {
+      background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 12px; padding: 20px; margin-top: 24px;
+      font-family: var(--font-mono); font-size: 0.82rem; color: #f87171;
+      display: none; line-height: 1.6;
+    }
+    .retry-btn {
+      margin-top: 14px; padding: 8px 20px; border-radius: 8px;
+      border: 1px solid #f87171; background: transparent;
+      color: #f87171; font-family: var(--font-mono); font-size: 0.78rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .retry-btn:hover { background: rgba(248,113,113,0.1); }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <div class="container">
+    <div class="orbit-wrap">
+      <div class="orbit orbit-1"></div>
+      <div class="orbit orbit-2"></div>
+      <div class="orbit orbit-3"></div>
+      <div class="orbit-core">📄</div>
+    </div>
+
+    <h2>Indexing Document</h2>
+    <div class="filename" id="file-name">Loading…</div>
+
+    <div class="progress-pct" id="pct">0%</div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="bar"></div>
+    </div>
+
+    <ul class="stage-list" id="stages">
+      <li class="stage" data-idx="0"><div class="stage-dot"></div>Reading PDF file</li>
+      <li class="stage" data-idx="1"><div class="stage-dot"></div>Extracting text with PyMuPDF</li>
+      <li class="stage" data-idx="2"><div class="stage-dot"></div>Chunking into semantic segments</li>
+      <li class="stage" data-idx="3"><div class="stage-dot"></div>Generating embeddings</li>
+      <li class="stage" data-idx="4"><div class="stage-dot"></div>Writing index to ChromaDB</li>
+    </ul>
+
+    <div class="error-box" id="error-box">
+      <strong>Processing Failed</strong><br />
+      <span id="error-msg"></span>
+      <br />
+      <button class="retry-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="processing.js"></script>
+</body>
+</html>

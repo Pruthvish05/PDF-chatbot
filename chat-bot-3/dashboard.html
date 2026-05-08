@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SigmaDoxs — Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050508; --surface: #0d0d14; --glass: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.07); --neon: #7b5ea7; --neon-hot: #c084fc;
+      --neon-cyan: #22d3ee; --text: #e8e8f0; --muted: #6b6b80;
+      --font-head: 'Syne', sans-serif; --font-mono: 'DM Mono', monospace;
+    }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--font-head);
+      height: 100vh; display: flex; overflow: hidden;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .sidebar {
+      width: 260px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--neon-hot), var(--neon-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      padding: 0 8px; margin-bottom: 28px;
+    }
+    .sidebar-logo span { -webkit-text-fill-color: var(--muted); font-weight: 400; }
+
+    .user-card {
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px; margin-bottom: 20px;
+    }
+    .user-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+    .token-row { display: flex; align-items: center; justify-content: space-between; }
+    .token-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+    .token-val {
+      font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500;
+      color: var(--neon-hot);
+    }
+    .token-bar-wrap {
+      height: 3px; background: rgba(255,255,255,0.06);
+      border-radius: 100px; margin-top: 8px; overflow: hidden;
+    }
+    .token-bar {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--neon), var(--neon-hot));
+      transition: width 0.5s ease;
+    }
+
+    .section-label {
+      font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--muted); padding: 0 8px;
+      margin-bottom: 8px; margin-top: 16px;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 1.5px dashed var(--border); border-radius: 14px;
+      padding: 20px 14px; text-align: center; cursor: pointer;
+      transition: all 0.25s; position: relative; overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--neon-hot); background: rgba(123,94,167,0.08); }
+    .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .upload-text { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); line-height: 1.5; }
+    .upload-text strong { color: var(--neon-hot); }
+    .upload-cost {
+      display: inline-block; margin-top: 6px; padding: 2px 10px;
+      border-radius: 100px; border: 1px solid rgba(192,132,252,0.3);
+      font-family: var(--font-mono); font-size: 0.65rem; color: var(--neon-hot);
+    }
+
+    /* Doc history */
+    .doc-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px; border-radius: 10px; cursor: pointer;
+      border: 1px solid transparent; transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .doc-item:hover { background: var(--glass); border-color: var(--border); }
+    .doc-item.active { background: rgba(123,94,167,0.12); border-color: rgba(192,132,252,0.3); }
+    .doc-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(123,94,167,0.15); display: flex; align-items: center;
+      justify-content: center; font-size: 0.9rem;
+    }
+    .doc-name { font-size: 0.78rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-meta { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+    .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    .logout-btn {
+      width: 100%; padding: 10px; border-radius: 10px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); font-family: var(--font-mono); font-size: 0.75rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: #f87171; color: #f87171; }
+
+    /* ── Main chat area ──────────────────────────────────────── */
+    .main {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; position: relative;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 28px; border-bottom: 1px solid var(--border);
+      background: rgba(5,5,8,0.6); backdrop-filter: blur(12px);
+      flex-shrink: 0;
+    }
+    .doc-indicator {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .doc-badge {
+      padding: 4px 12px; border-radius: 100px;
+      background: rgba(123,94,167,0.15); border: 1px solid rgba(123,94,167,0.3);
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--neon-hot);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #34d399;
+      animation: pulse 2.5s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .topbar-right { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+
+    /* Chat area */
+    .chat-area {
+      flex: 1; overflow-y: auto; padding: 28px;
+      scroll-behavior: smooth;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .chat-area::-webkit-scrollbar { width: 4px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
+
+    /* Empty / welcome state */
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 40px; opacity: 0.6;
+      pointer-events: none;
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .empty-state p { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+
+    /* Suggestion chips */
+    .suggestions {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+      margin-top: 24px; pointer-events: all;
+    }
+    .chip {
+      padding: 8px 16px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--glass);
+      font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .chip:hover { border-color: var(--neon-hot); color: var(--neon-hot); }
+
+    /* Message bubbles */
+    .msg { display: flex; gap: 12px; max-width: 820px; width: 100%; animation: msgIn 0.3s ease; }
+    .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .msg-avatar {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 700;
+    }
+    .msg.bot .msg-avatar {
+      background: linear-gradient(135deg, var(--neon), var(--neon-hot));
+      font-family: var(--font-head); color: #fff; font-size: 0.75rem;
+    }
+    .msg.user .msg-avatar {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--muted);
+    }
+
+    .msg-body { flex: 1; }
+    .msg-role {
+      font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+    }
+    .msg.user .msg-role { text-align: right; }
+
+    .msg-bubble {
+      padding: 14px 18px; border-radius: 16px;
+      font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.7;
+    }
+    .msg.bot .msg-bubble {
+      background: var(--surface); border: 1px solid var(--border);
+      border-top-left-radius: 4px; color: var(--text);
+    }
+    .msg.user .msg-bubble {
+      background: linear-gradient(135deg, rgba(123,94,167,0.25), rgba(34,211,238,0.1));
+      border: 1px solid rgba(123,94,167,0.3);
+      border-top-right-radius: 4px;
+      text-align: right;
+    }
+
+    /* Thinking animation */
+    .thinking { display: flex; gap: 5px; align-items: center; padding: 8px 0; }
+    .thinking span {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--neon-hot);
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .thinking span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+    /* Markdown-like rendering inside bubbles */
+    .msg-bubble strong { color: var(--neon-hot); font-weight: 600; }
+    .msg-bubble em { color: var(--neon-cyan); font-style: normal; }
+    .msg-bubble code {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px; font-size: 0.82em;
+    }
+
+    /* ── Input bar ───────────────────────────────────────────── */
+    .input-section {
+      padding: 16px 28px 24px; border-top: 1px solid var(--border);
+      flex-shrink: 0; background: rgba(5,5,8,0.5); backdrop-filter: blur(12px);
+    }
+    .no-doc-warn {
+      text-align: center; font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--muted); margin-bottom: 10px; display: none;
+    }
+    .no-doc-warn.show { display: block; }
+    .input-row {
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+    .input-wrap {
+      flex: 1; position: relative;
+    }
+    textarea {
+      width: 100%; padding: 14px 48px 14px 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; color: var(--text);
+      font-family: var(--font-mono); font-size: 0.88rem;
+      resize: none; outline: none; transition: border-color 0.2s;
+      min-height: 52px; max-height: 160px; overflow-y: auto;
+      line-height: 1.5;
+    }
+    textarea::placeholder { color: var(--muted); }
+    textarea:focus { border-color: rgba(192,132,252,0.4); }
+    .send-btn {
+      width: 48px; height: 48px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--neon), var(--neon-hot));
+      color: #fff; font-size: 1rem; cursor: pointer;
+      flex-shrink: 0; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .send-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 0 20px rgba(192,132,252,0.4); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .input-hint {
+      font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted);
+      margin-top: 8px; display: flex; align-items: center; gap: 16px;
+    }
+    .input-hint .cost { color: var(--neon-hot); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 20px; font-family: var(--font-mono); font-size: 0.8rem;
+      opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { border-color: rgba(248,113,113,0.4); color: #f87171; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Sigma<span>Doxs</span></div>
+
+    <!-- User card -->
+    <div class="user-card">
+      <div class="user-name" id="user-name">—</div>
+      <div class="token-row">
+        <span class="token-label">Tokens</span>
+        <span class="token-val" id="token-display">0</span>
+      </div>
+      <div class="token-bar-wrap">
+        <div class="token-bar" id="token-bar"></div>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="section-label">// upload</div>
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" accept=".pdf" id="file-input" />
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">
+        Drop a PDF or <strong>click to browse</strong>
+        <br />
+        <span class="upload-cost">−5 tokens per upload</span>
+      </div>
+    </div>
+
+    <!-- Document history -->
+    <div class="section-label">// documents</div>
+    <div id="doc-list"></div>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────── -->
+  <main class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="doc-indicator">
+        <div class="status-dot" id="status-dot" style="background:var(--muted)"></div>
+        <span class="doc-badge" id="doc-badge">No document selected</span>
+      </div>
+      <div class="topbar-right" id="topbar-right">Upload a PDF to begin →</div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-area" id="chat-area">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">🔬</div>
+        <h3>Research begins with a question.</h3>
+        <p>Upload a document from the sidebar, then start asking.</p>
+        <div class="suggestions" id="chips"></div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-section">
+      <div class="no-doc-warn" id="no-doc-warn">⚠ Select or upload a document first.</div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <textarea id="question-input" placeholder="Ask anything about your document…" rows="1"></textarea>
+        </div>
+        <button class="send-btn" id="send-btn" title="Send (Enter)">➤</button>
+      </div>
+      <div class="input-hint">
+        <span>Enter to send · Shift+Enter for newline</span>
+        <span class="cost">−1 token per question</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+  <script src="qa.js"></script>
+</body>
+</html>
