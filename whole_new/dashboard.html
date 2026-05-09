@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SigmaDoxs | Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+        .sidebar { padding: 30px; border-right: 1px solid var(--glass-border); }
+        .workspace { display: flex; flex-direction: column; padding: 40px; position: relative; }
+        #chat-window { flex: 1; overflow-y: auto; padding-bottom: 100px; display: flex; flex-direction: column; gap: 20px; }
+        .input-area { position: absolute; bottom: 40px; left: 40px; right: 40px; }
+        .input-box { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 18px; border-radius: 12px; color: white; outline: none; }
+        .msg { padding: 15px 20px; border-radius: 12px; max-width: 80%; }
+        .user-msg { align-self: flex-end; background: var(--glass); border: 1px solid var(--glass-border); }
+        .bot-msg { align-self: flex-start; border-left: 3px solid var(--neon-cyan); background: rgba(0, 242, 255, 0.05); }
+        .token-badge { background: var(--neon-purple); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar glass-card">
+            <h2 class="neon-text" style="font-size: 1.5rem; margin-bottom: 30px;">SIGMA<span style="color:white">DOXS</span></h2>
+            <div style="margin-bottom: 40px;">
+                <p style="color: var(--text-dim); font-size: 10px; text-transform: uppercase;">Active Source</p>
+                <p id="filename-display" style="word-break: break-all; font-weight: bold;"></p>
+            </div>
+            <div>
+                <p style="color: var(--text-dim); font-size: 10px; text-transform: uppercase;">Credits</p>
+                <p><span id="token-count">0</span> <span class="token-badge">SDX</span></p>
+            </div>
+        </aside>
+        
+        <main class="workspace">
+            <div id="chat-window">
+                <div class="bot-msg msg">Welcome to the Matrix. Your document is indexed. Ask me anything.</div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="queryInput" class="input-box" placeholder="Decrypt the context..." onkeydown="if(event.key==='Enter') send()">
+            </div>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        const filename = localStorage.getItem('pending_name');
+        document.getElementById('filename-display').innerText = filename;
+        
+        function updateTokens() {
+            document.getElementById('token-count').innerText = TokenManager.getTokens();
+        }
+        updateTokens();
+        window.addEventListener('tokenUpdate', updateTokens);
+
+        async function send() {
+            const input = document.getElementById('queryInput');
+            const question = input.value.trim();
+            if(!question) return;
+
+            const win = document.getElementById('chat-window');
+            
+            // Display user message
+            win.innerHTML += `<div class="user-msg msg">${question}</div>`;
+            input.value = '';
+            win.scrollTop = win.scrollHeight;
+
+            // Create thinking bubble
+            const thinking = document.createElement('div');
+            thinking.className = 'bot-msg msg';
+            thinking.innerText = 'Consulting Vector Store...';
+            win.appendChild(thinking);
+            win.scrollTop = win.scrollHeight;
+
+            try {
+                const filename = localStorage.getItem('pending_name');
+                if (!filename) {
+                    thinking.innerText = "Error: No document loaded. Please upload a PDF first.";
+                    thinking.style.color = "red";
+                    return;
+                }
+                
+                TokenManager.deduct(1);
+                const data = await SigmaAPI.queryDoc(filename, question);
+                
+                if (data.status === 'success' && data.answer) {
+                    thinking.innerText = data.answer;
+                } else if (data.answer) {
+                    thinking.innerText = data.answer;
+                } else {
+                    thinking.innerText = "No response from backend. Please check server.";
+                    thinking.style.color = "orange";
+                }
+            } catch (e) {
+                console.error("Query error:", e);
+                thinking.innerText = `Connection Error: ${e.message || 'Backend unreachable. Is the server running?'}`;
+                thinking.style.color = "red";
+            }
+            win.scrollTop = win.scrollHeight;
+        }
+    </script>
+</body>
+</html>
